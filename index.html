@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Making Application - Power By Siam</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th {
+            font-size: 14px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 5px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .print-btn {
+            margin-top: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100px;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .header h2, .header p {
+            margin: 5px 0;
+        }
+        .header h2 {
+            font-size: 22px;
+        }
+        @media print {
+            .form-container, .btn, .import-export {
+                display: none;
+            }
+            body {
+                margin: 0;
+            }
+            table, th, td {
+                border: 1px solid #000;
+            }
+            @page {
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.jpg" alt="Logo" style="width: 100px,">
+        <h2>হিফজুল কুরআন নুরানী কিন্ডার গার্টেন হাফিজিয়া মাদ্রাসা</h2>
+        <p>আব্দুর রশিদ মিয়া সুপার মার্কেট ৩য় তলা , তোরাপগঞ্জ বাজার, টাঙ্গাইল</p>
+        <p>দ্বিতীয় শ্রেণি থেকে তৃতীয় শ্রেণিতে উত্তীর্ণ শিক্ষার্থীগণ (শাখা: ক)</p>
+        <p>বার্ষিক পরীক্ষার ফলাফল শিট - ২০২৪ইং</p>
+    </div>
+
+    <div class="form-container">
+        <div class="form-group">
+            <label for="previousRoll">Previous Roll</label>
+            <input type="text" id="previousRoll" onkeydown="moveFocus(event, 'name')">
+        </div>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" onkeydown="moveFocus(event, 'fatherName')">
+        </div>
+        <div class="form-group">
+            <label for="fatherName">Father's Name</label>
+            <input type="text" id="fatherName" onkeydown="moveFocus(event, 'bangla')">
+        </div>
+        <div class="form-group">
+            <label for="bangla">Marks (Bangla)</label>
+            <input type="text" id="bangla" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'english')">
+        </div>
+        <div class="form-group">
+            <label for="english">Marks (English)</label>
+            <input type="text" id="english" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'math')">
+        </div>
+        <div class="form-group">
+            <label for="math">Marks (Math)</label>
+            <input type="text" id="math" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'generalKnowledge')">
+        </div>
+        <div class="form-group">
+            <label for="generalKnowledge">Marks (General Knowledge)</label>
+            <input type="text" id="generalKnowledge" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'arbi')">
+        </div>
+        <div class="form-group">
+            <label for="arbi">Marks (Arbi)</label>
+            <input type="text" id="arbi" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'hadis')">
+        </div>
+        <div class="form-group">
+            <label for="hadis">Marks (Hadis)</label>
+            <input type="text" id="hadis" oninput="convertInputToEnglish(event)" onkeydown="moveFocus(event, 'addStudent')">
+        </div>
+        <button class="btn" id="addStudent" onclick="addStudent()">Add Student</button>
+        <button class="btn" onclick="resetResults()">Reset Results</button>
+    </div>
+
+    <div class="import-export">
+        <button class="btn" onclick="exportToExcel()">Export to Excel</button>
+        <input type="file" id="fileInput" accept=".xlsx" onchange="importFromExcel()">
+    </div>
+
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>বর্তমান রোল</th>
+                <th>পূর্বের রোল</th>
+                <th>নাম</th>
+                <th>পিতার নাম</th>
+                <th>বাংলা</th>
+                <th>ইংলিশ</th>
+                <th>গণিত</th>
+                <th>সাঃজ্ঞান</th>
+                <th>আরবী</th>
+                <th>হাদিস</th>
+                <th>মোট নাম্বার</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button class="btn print-btn" onclick="printResults()">Print Results</button>
+
+    <script>
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+
+        function convertToBangla(num) {
+            const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return num.toString().split('').map(digit => banglaDigits[digit] || digit).join('');
+        }
+
+        function convertInputToEnglish(event) {
+            const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const inputValue = event.target.value;
+            const convertedValue = inputValue.split('').map(char => {
+                const index = banglaDigits.indexOf(char);
+                return index !== -1 ? englishDigits[index] : char;
+            }).join('');
+            event.target.value = convertedValue;
+        }
+
+        function moveFocus(event, nextElementId) {
+            if (event.key === "Enter" || event.key === "Tab") {
+                document.getElementById(nextElementId).focus();
+                event.preventDefault();
+            }
+        }
+
+        function addStudent() {
+            const previousRoll = document.getElementById("previousRoll").value;
+            const name = document.getElementById("name").value;
+            const fatherName = document.getElementById("fatherName").value;
+            const bangla = parseInt(document.getElementById("bangla").value) || 0;
+            const english = parseInt(document.getElementById("english").value) || 0;
+            const math = parseInt(document.getElementById("math").value) || 0;
+            const generalKnowledge = parseInt(document.getElementById("generalKnowledge").value) || 0;
+            const arbi = parseInt(document.getElementById("arbi").value) || 0;
+            const hadis = parseInt(document.getElementById("hadis").value) || 0;
+            const totalMarks = bangla + english + math + generalKnowledge + arbi + hadis;
+
+            if (!previousRoll || !name || !fatherName) {
+                alert("Please fill out all required fields!");
+                return;
+            }
+
+            const student = {
+                previousRoll,
+                name,
+                fatherName,
+                bangla,
+                english,
+                math,
+                generalKnowledge,
+                arbi,
+                hadis,
+                totalMarks
+            };
+
+            students.push(student);
+            students.sort((a, b) => b.totalMarks - a.totalMarks); // Sort by total marks
+
+            updateTable();
+            resetForm();
+            localStorage.setItem("students", JSON.stringify(students));
+        }
+
+        function updateTable() {
+            const tableBody = document.querySelector("#resultTable tbody");
+            tableBody.innerHTML = "";
+            students.forEach((student, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${convertToBangla(index + 1)}</td>
+                    <td>${convertToBangla(student.previousRoll)}</td>
+                    <td>${student.name}</td>
+                    <td>${student.fatherName}</td>
+                    <td>${student.bangla}</td>
+                    <td>${student.english}</td>
+                    <td>${student.math}</td>
+                    <td>${student.generalKnowledge}</td>
+                    <td>${student.arbi}</td>
+                    <td>${student.hadis}</td>
+                    <td>${student.totalMarks}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function resetForm() {
+            document.getElementById("previousRoll").value = '';
+            document.getElementById("name").value = '';
+            document.getElementById("fatherName").value = '';
+            document.getElementById("bangla").value = '';
+            document.getElementById("english").value = '';
+            document.getElementById("math").value = '';
+            document.getElementById("generalKnowledge").value = '';
+            document.getElementById("arbi").value = '';
+            document.getElementById("hadis").value = '';
+        }
+
+        function resetResults() {
+            localStorage.removeItem("students");
+            students.length = 0;
+            updateTable();
+        }
+
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(students);
+            XLSX.utils.book_append_sheet(wb, ws, "Students");
+            XLSX.writeFile(wb, "students.xlsx");
+        }
+
+        function importFromExcel() {
+            const file = document.getElementById("fileInput").files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: "binary" });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const studentsData = XLSX.utils.sheet_to_json(firstSheet);
+                students.length = 0;
+                students.push(...studentsData);
+                localStorage.setItem("students", JSON.stringify(students));
+                updateTable();
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        function printResults() {
+            window.print();
+        }
+
+        updateTable();
+    </script>
+</body>
+</html>
