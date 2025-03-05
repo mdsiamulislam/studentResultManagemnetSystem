@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMS</title>
+    <link rel="stylesheet" href="css/login_page_style.css">
+</head>
+<body>
+    <section class="login-page">
+        <div class="login-page__form">
+            <img src="asset/img/logo.png" alt="logo" class="login-page__form__logo">
+            <h1 class="login-page__form__title">Login</h1>
+            <form action="includes/login.inc.php" method="post">
+                <input type="text" name="username" placeholder="Username" class="login-page__form__input">
+                <input type="password" name="password" placeholder="Password" class="login-page__form__input">
+                <button type="submit" name="login-submit" class="login-page__form__button"><a href="pages/home_page.html">LogIn</a></button>
+            </form>
+            <a href="signup.php" class="login-page__form__link">Signup</a>
+        </div>
+    </section>
+</body>
+</html>

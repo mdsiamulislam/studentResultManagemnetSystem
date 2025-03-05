@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        .info p {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        .month {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .paid {
+            color: green;
+            font-weight: bold;
+        }
+        .not-paid {
+            color: red;
+            font-weight: bold;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Information</h2>
+        <div id="loading" class="loading">Loading...</div>
+        <div class="info" id="student-info" style="display: none;"></div>
+        <div class="payment-status" style="display: none;" id="payment-status">
+            <h3>Payment Status</h3>
+            <div id="payment-details"></div>
+        </div>
+    </div>
+    
+    <script>
+        const studentID = 2025001; // Assume received from previous page
+        fetch("https://script.google.com/macros/s/AKfycbzm7ILxzdnWS4bTgoXY3SQUQecSEtK3cmHhvB1_PdfcDZHQz6rCxHndUeS9Mo0vvR9K/exec")
+        .then(response => response.json())
+        .then(data => {
+            const student = data.find(s => s["Student ID"] === studentID);
+            if (!student) {
+                document.getElementById("loading").innerText = "Student not found";
+                return;
+            }
+            document.getElementById("student-info").innerHTML = `
+                <p><strong>Name:</strong> ${student.Name}</p>
+                <p><strong>Student ID:</strong> ${student["Student ID"]}</p>
+                <p><strong>Father's Name:</strong> ${student["Father Name"]}</p>
+                <p><strong>Phone:</strong> <a href="tel:${student.Phone}">${student.Phone}</a></p>
+                <p><strong>Total Paid:</strong> ${student.Total} BDT</p>
+            `;
+            
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            let paymentHTML = "";
+            months.forEach(month => {
+                const amount = student[month];
+                paymentHTML += `<div class="month"><span>${month}</span> <span class="${amount > 0 ? 'paid' : 'not-paid'}">${amount > 0 ? `Paid (${amount} BDT)` : 'Not Paid'}</span></div>`;
+            });
+            document.getElementById("payment-details").innerHTML = paymentHTML;
+            
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("student-info").style.display = "block";
+            document.getElementById("payment-status").style.display = "block";
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+            document.getElementById("loading").innerText = "Failed to load data";
+        });
+    </script>
+</body>
+</html>

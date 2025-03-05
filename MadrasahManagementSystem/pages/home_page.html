@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/home_page_style.css">
+    <title>Document</title>
+    <style>
+        /* Loading Animation Styles */
+        #loading {
+            display: none; /* Hidden by default */
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2>Hifzul Quran Madrasha</h2>
+        <menu>
+            <ul style="list-style-type: none;">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><input type="text" id="searchInput" placeholder="Search by ID"></li>
+                <li><button onclick="searchStudent()">Search Student</button></li>
+            </ul>
+        </menu>
+    </nav>
+    <main>
+        <section class="student_info" id="studentInfo">
+           
+            <div class="info">
+                <div class="infomati">
+                    <img src="../asset/img/logo.png" alt="Student Image">
+                    <div class="personalinfo">
+                        <h2 id="studentName">Student Name</h2>
+                        <p id="fatherName">Father Name</p>
+                        <p id="phone">Mobile</p>
+                        <p id="totalPayment">Total Payment: <span id="totalAmount">0</span></p>
+                    </div>
+                    <div class="buttons">
+                        <p class="student-id">ID: <span id="studentId">123456</span></p>
+                        <div class="button-group">
+                            <button onclick="manageStudent()">Manage</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="payment-status">
+                    <h3>Payment Status</h3>
+                    <div class="months">
+                        <div class="month paid">January</div>
+                        <div class="month paid">February</div>
+                        <div class="month paid">March</div>
+                        <div class="month paid">April</div>
+                        <div class="month paid">May</div>
+                        <div class="month paid">June</div>
+                        <div class="month paid">July</div>
+                        <div class="month paid">August</div>
+                        <div class="month paid">September</div>
+                        <div class="month paid">October</div>
+                        <div class="month paid">November</div>
+                        <div class="month unpaid">December</div>
+                    </div>
+                </div>
+            </div>
+            <div id="paymentStatus"></div>
+        </section>
+        <p id="notFoundMessage" style="display:none; color:red;">Student not found.</p>
+        <div id="loading">Loading...</div> <!-- Loading Animation -->
+    </main>
+</body>
+</html>
