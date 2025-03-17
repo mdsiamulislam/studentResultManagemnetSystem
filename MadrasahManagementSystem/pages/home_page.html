@@ -5,72 +5,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/home_page_style.css">
     <title>Document</title>
-    <style>
-        /* Loading Animation Styles */
-        #loading {
-            display: none; /* Hidden by default */
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            color: #007BFF;
-        }
-    </style>
 </head>
 <body>
     <nav>
-        <h2>Hifzul Quran Madrasha</h2>
+        <h2 onclick="showAllStudents()">Hifzul Quran Madrasha</h2>
         <menu>
-            <ul style="list-style-type: none;">
-                <li><a href="#">Home</a></li>
+            <ul>
+                <li><a href="#" onclick="showAllStudents()">Home</a></li>
                 <li><a href="#">About</a></li>
-                <li><input type="text" id="searchInput" placeholder="Search by ID"></li>
+                <li>
+                    <input type="text" id="searchInput" placeholder="Search by ID" oninput="showSuggestions()">
+                    <div id="suggestions" class="suggestions"></div>
+                </li>
                 <li><button onclick="searchStudent()">Search Student</button></li>
             </ul>
         </menu>
     </nav>
     <main>
-        <section class="student_info" id="studentInfo">
-           
-            <div class="info">
-                <div class="infomati">
-                    <img src="../asset/img/logo.png" alt="Student Image">
-                    <div class="personalinfo">
-                        <h2 id="studentName">Student Name</h2>
-                        <p id="fatherName">Father Name</p>
-                        <p id="phone">Mobile</p>
-                        <p id="totalPayment">Total Payment: <span id="totalAmount">0</span></p>
+        <div id="studentsContainer"></div> <!-- Container for student sections -->
+        <p id="notFoundMessage" style="display:none; color:red;">Student not found.</p>
+        <div id="loading" style="display:none;">Loading...</div> <!-- Loading Animation -->
+    </main>
+
+    <script>
+        let allStudents = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const apiUrl = "https://script.google.com/macros/s/AKfycbzm7ILxzdnWS4bTgoXY3SQUQecSEtK3cmHhvB1_PdfcDZHQz6rCxHndUeS9Mo0vvR9K/exec";
+            const loadingElement = document.getElementById("loading");
+            const studentsContainer = document.getElementById("studentsContainer");
+            const notFoundMessageElement = document.getElementById("notFoundMessage");
+
+            loadingElement.style.display = "block";
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    loadingElement.style.display = "none";
+                    allStudents = filterValidStudents(data);
+                    if (allStudents.length > 0) {
+                        showAllStudents();
+                    } else {
+                        notFoundMessageElement.style.display = "block";
+                    }
+                })
+                .catch(error => {
+                    loadingElement.style.display = "none";
+                    console.error("Error fetching data:", error);
+                });
+        });
+
+        function filterValidStudents(students) {
+            return students.filter(student => {
+                return student["Student ID"] && Object.keys(student).some(key => {
+                    if (key !== "Student ID" && key !== "Name" && key !== "Father Name" && key !== "Phone" && key !== "Total") {
+                        return student[key] !== 0 && student[key] !== null;
+                    }
+                    return false;
+                });
+            });
+        }
+
+        function createStudentSection(student) {
+            const section = document.createElement("section");
+            section.className = "student_info";
+            section.innerHTML = `
+                <div class="info">
+                    <div class="infomati">
+                        <img src="../asset/img/logo.png" alt="Student Image">
+                        <div class="personalinfo">
+                            <h2>${student["Name"]}</h2>
+                            <p>Father Name: ${student["Father Name"]}</p>
+                            <p>Mobile: ${student["Phone"]}</p>
+                            <p>Total Payment: <span>${student["Total"]}</span></p>
+                        </div>
+                        <div class="buttons">
+                            <p class="student-id">ID: <span>${student["Student ID"]}</span></p>
+                            <div class="button-group">
+                                <button onclick="manageStudent(${student["Student ID"]})">Manage</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="buttons">
-                        <p class="student-id">ID: <span id="studentId">123456</span></p>
-                        <div class="button-group">
-                            <button onclick="manageStudent()">Manage</button>
+                    <div class="payment-status">
+                        <h3>Payment Status</h3>
+                        <div class="months">
+                            ${createPaymentStatus(student)}
                         </div>
                     </div>
                 </div>
-                <div class="payment-status">
-                    <h3>Payment Status</h3>
-                    <div class="months">
-                        <div class="month paid">January</div>
-                        <div class="month paid">February</div>
-                        <div class="month paid">March</div>
-                        <div class="month paid">April</div>
-                        <div class="month paid">May</div>
-                        <div class="month paid">June</div>
-                        <div class="month paid">July</div>
-                        <div class="month paid">August</div>
-                        <div class="month paid">September</div>
-                        <div class="month paid">October</div>
-                        <div class="month paid">November</div>
-                        <div class="month unpaid">December</div>
-                    </div>
-                </div>
-            </div>
-            <div id="paymentStatus"></div>
-        </section>
-        <p id="notFoundMessage" style="display:none; color:red;">Student not found.</p>
-        <div id="loading">Loading...</div> <!-- Loading Animation -->
-    </main>
+            `;
+            return section;
+        }
+
+        function manageStudent(studentId) {
+            window.location.href = `./details_page.html?studentId=${studentId}`;
+        }
+
+        function createPaymentStatus(student) {
+            const months = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+            return months.map(month => {
+                const statusClass = student[month] > 0 ? "paid" : "unpaid";
+                return `<div class="month ${statusClass}">${month}</div>`;
+            }).join("");
+        }
+
+        function showAllStudents() {
+            const studentsContainer = document.getElementById("studentsContainer");
+            studentsContainer.innerHTML = "";
+            allStudents.forEach(student => {
+                const studentSection = createStudentSection(student);
+                studentsContainer.appendChild(studentSection);
+            });
+        }
+
+        function searchStudent() {
+    const searchInput = document.getElementById("searchInput").value.trim();
+    const studentId = parseInt(searchInput, 10); // Convert input to number
+    const studentsContainer = document.getElementById("studentsContainer");
+    const notFoundMessageElement = document.getElementById("notFoundMessage");
+
+    studentsContainer.innerHTML = "";
+    const student = allStudents.find(student => student["Student ID"] === studentId);
+    
+    if (student) {
+        const studentSection = createStudentSection(student);
+        studentsContainer.appendChild(studentSection);
+        notFoundMessageElement.style.display = "none";
+    } else {
+        notFoundMessageElement.style.display = "block";
+    }
+}
+
+
+        function showSuggestions() {
+            const searchInput = document.getElementById("searchInput").value.trim().toLowerCase();
+            const suggestionsContainer = document.getElementById("suggestions");
+            suggestionsContainer.innerHTML = "";
+
+            if (searchInput) {
+                const suggestions = allStudents
+                    .filter(student => student["Student ID"].toLowerCase().includes(searchInput))
+                    .map(student => `<div onclick="selectSuggestion('${student["Student ID"]}')">${student["Student ID"]}</div>`)
+                    .join("");
+                suggestionsContainer.innerHTML = suggestions;
+            }
+        }
+
+        function selectSuggestion(studentId) {
+            document.getElementById("searchInput").value = studentId;
+            document.getElementById("suggestions").innerHTML = "";
+        }
+    </script>
 </body>
 </html>

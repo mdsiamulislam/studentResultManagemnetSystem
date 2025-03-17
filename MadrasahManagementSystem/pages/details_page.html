@@ -45,11 +45,7 @@
             text-align: center;
             font-size: 18px;
             color: #555;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            margin-top: 100px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -58,46 +54,68 @@
         <h2>Student Information</h2>
         <div id="loading" class="loading">Loading...</div>
         <div class="info" id="student-info" style="display: none;"></div>
-        <div class="payment-status" style="display: none;" id="payment-status">
+        <div class="payment-status" id="payment-status" style="display: none;">
             <h3>Payment Status</h3>
             <div id="payment-details"></div>
         </div>
     </div>
     
     <script>
-        const studentID = 2025001; // Assume received from previous page
-        fetch("https://script.google.com/macros/s/AKfycbzm7ILxzdnWS4bTgoXY3SQUQecSEtK3cmHhvB1_PdfcDZHQz6rCxHndUeS9Mo0vvR9K/exec")
-        .then(response => response.json())
-        .then(data => {
-            const student = data.find(s => s["Student ID"] === studentID);
-            if (!student) {
-                document.getElementById("loading").innerText = "Student not found";
+        // Get Student ID from URL Parameters
+        function getStudentIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get("studentId");
+        }
+
+        // Fetch student data from API
+        async function fetchStudentData() {
+            const studentID = getStudentIdFromURL();
+            if (!studentID) {
+                document.getElementById("loading").innerText = "No Student ID provided.";
                 return;
             }
-            document.getElementById("student-info").innerHTML = `
-                <p><strong>Name:</strong> ${student.Name}</p>
-                <p><strong>Student ID:</strong> ${student["Student ID"]}</p>
-                <p><strong>Father's Name:</strong> ${student["Father Name"]}</p>
-                <p><strong>Phone:</strong> <a href="tel:${student.Phone}">${student.Phone}</a></p>
-                <p><strong>Total Paid:</strong> ${student.Total} BDT</p>
-            `;
-            
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            let paymentHTML = "";
-            months.forEach(month => {
-                const amount = student[month];
-                paymentHTML += `<div class="month"><span>${month}</span> <span class="${amount > 0 ? 'paid' : 'not-paid'}">${amount > 0 ? `Paid (${amount} BDT)` : 'Not Paid'}</span></div>`;
-            });
-            document.getElementById("payment-details").innerHTML = paymentHTML;
-            
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("student-info").style.display = "block";
-            document.getElementById("payment-status").style.display = "block";
-        })
-        .catch(error => {
-            console.error("Error fetching data:", error);
-            document.getElementById("loading").innerText = "Failed to load data";
-        });
+
+            try {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbzm7ILxzdnWS4bTgoXY3SQUQecSEtK3cmHhvB1_PdfcDZHQz6rCxHndUeS9Mo0vvR9K/exec");
+                const data = await response.json();
+
+                const student = data.find(s => s["Student ID"] == studentID);
+                if (!student) {
+                    document.getElementById("loading").innerText = "Student not found.";
+                    return;
+                }
+
+                // Display Student Info
+                document.getElementById("student-info").innerHTML = `
+                    <p><strong>Name:</strong> ${student.Name}</p>
+                    <p><strong>Student ID:</strong> ${student["Student ID"]}</p>
+                    <p><strong>Father's Name:</strong> ${student["Father Name"]}</p>
+                    <p><strong>Phone:</strong> <a href="tel:${student.Phone}">${student.Phone}</a></p>
+                    <p><strong>Total Paid:</strong> ${student.Total} BDT</p>
+                `;
+
+                // Payment Status
+                const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                let paymentHTML = months.map(month => {
+                    const amount = student[month];
+                    return `<div class="month"><span>${month}</span> <span class="${amount > 0 ? 'paid' : 'not-paid'}">${amount > 0 ? `Paid (${amount} BDT)` : `Not Paid <a href="https://docs.google.com/forms/d/e/1FAIpQLSeC7V1z6FJjTGUT623JJKc1T9ufWLU_3_FtAKCzkXm6PWBU-g/viewform?usp=header" target="_blank">Pay Now</a>`}</span></div>`;
+                }).join('');
+
+                document.getElementById("payment-details").innerHTML = paymentHTML;
+
+                // Show Data and Hide Loading
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("student-info").style.display = "block";
+                document.getElementById("payment-status").style.display = "block";
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById("loading").innerText = "Failed to load data. Please try again.";
+            }
+        }
+
+        // Load data when page is ready
+        document.addEventListener("DOMContentLoaded", fetchStudentData);
     </script>
 </body>
 </html>
